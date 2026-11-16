@@ -1,5 +1,6 @@
 // Import packages, initialize an express app, and define the port you will use
 const express = require('express');
+const { body, validationResult } = require('express-validator');
 
 const app = express();
 const port = 3000;
@@ -75,6 +76,59 @@ const requestLogger = (req, res, next) => {
     next();
 };
 
+// Validation rules for menu items
+const menuItemValidation = [
+    body('name')
+        .isString()
+        .withMessage('Name is required and must be a string')
+        .isLength({ min: 3 })
+        .withMessage('Name must be at least 3 characters long'),
+
+    body('description')
+        .isString()
+        .withMessage('Description is required and must be a string')
+        .isLength({ min: 10 })
+        .withMessage('Description must be at least 10 characters long'),
+
+    body('price')
+        .isFloat({ gt: 0 })
+        .withMessage('Price must be a number greater than 0'),
+
+    body('category')
+        .isIn(['appetizer', 'entree', 'dessert', 'beverage'])
+        .withMessage('Category must be appetizer, entree, dessert, or beverage'),
+
+    body('ingredients')
+        .isArray({ min: 1 })
+        .withMessage('Ingredients must be an array with at least one ingredient'),
+
+    body('available')
+        .optional()
+        .isBoolean()
+        .withMessage('Available must be true or false')
+];
+
+// Validation error handling middleware
+const handleValidationErrors = (req, res, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        const errorMessages = errors.array().map(error => error.msg);
+
+        return res.status(400).json({
+            error: 'Validation failed',
+            messages: errorMessages
+        });
+    }
+
+    // Set default value for available if not provided
+    if (req.body.available === undefined) {
+        req.body.available = true;
+    }
+
+    next();
+};
+
 // Built-in middleware for parsing JSON
 app.use(express.json());
 
@@ -99,7 +153,7 @@ app.get('/api/menu/:id', (req, res) => {
 });
 
 // POST new menu item
-app.post('/api/menu', (req, res) => {
+app.post('/api/menu', menuItemValidation, handleValidationErrors, (req, res) => {
     const { name, description, price, category, ingredients, available } = req.body;
 
     const newMenuItem = {
@@ -117,7 +171,7 @@ app.post('/api/menu', (req, res) => {
 });
 
 // PUT update an existing menu item
-app.put('/api/menu/:id', (req, res) => {
+app.put('/api/menu/:id', menuItemValidation, handleValidationErrors, (req, res) => {
     const menuItemId = parseInt(req.params.id);
     const menuItem = menuItems.find(item => item.id === menuItemId);
 
