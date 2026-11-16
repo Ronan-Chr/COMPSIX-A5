@@ -62,8 +62,24 @@ const menuItems = [
   }
 ];
 
+// Request logging middleware
+const requestLogger = (req, res, next) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${req.method} ${req.originalUrl}`);
+
+    // Log request body for POST and PUT requests
+    if (req.method === 'POST' || req.method === 'PUT') {
+        console.log('Request Body:', JSON.stringify(req.body, null, 2));
+    }
+
+    next();
+};
+
 // Built-in middleware for parsing JSON
 app.use(express.json());
+
+// Custom logging middleware
+app.use(requestLogger);
 
 // GET all menu items
 app.get('/api/menu', (req, res) => {
