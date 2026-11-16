@@ -137,7 +137,7 @@ app.use(requestLogger);
 
 // GET all menu items
 app.get('/api/menu', (req, res) => {
-    res.json(menuItems);
+    res.status(200).json(menuItems);
 });
 
 // GET a specific menu item by ID
@@ -149,7 +149,7 @@ app.get('/api/menu/:id', (req, res) => {
         return res.status(404).json({ error: 'Menu item not found' });
     }
 
-    res.json(menuItem);
+    res.status(200).json(menuItem);
 });
 
 // POST new menu item
@@ -188,7 +188,7 @@ app.put('/api/menu/:id', menuItemValidation, handleValidationErrors, (req, res) 
     menuItem.ingredients = ingredients;
     menuItem.available = available;
 
-    res.json(menuItem);
+    res.status(200).json(menuItem);
 });
 
 // DELETE a menu item
@@ -201,7 +201,7 @@ app.delete('/api/menu/:id', (req, res) => {
     }
 
     const deletedMenuItem = menuItems.splice(menuItemIndex, 1)[0];
-    res.json({ message: 'Menu item deleted successfully', menuItem: deletedMenuItem });
+    res.status(200).json({ message: 'Menu item deleted successfully', menuItem: deletedMenuItem });
 });
 
 // Start server
